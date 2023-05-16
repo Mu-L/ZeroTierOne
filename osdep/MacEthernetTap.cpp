@@ -343,6 +343,15 @@ std::vector<InetAddress> MacEthernetTap::ips() const
 {
 	struct ifaddrs *ifa = (struct ifaddrs *)0;
 	std::vector<InetAddress> r;
+
+	uint64_t now = OSUtils::now();
+
+	if ((now - _lastIfAddrsUpdate) <= GETIFADDRS_CACHE_TIME) {
+		return _ifaddrs;
+	}
+
+	_lastIfAddrsUpdate = now;
+
 	if (!getifaddrs(&ifa)) {
 		struct ifaddrs *p = ifa;
 		while (p) {
@@ -368,6 +377,9 @@ std::vector<InetAddress> MacEthernetTap::ips() const
 	}
 	std::sort(r.begin(),r.end());
 	r.erase(std::unique(r.begin(),r.end()),r.end());
+
+	_ifaddrs = r;
+
 	return r;
 }
 
