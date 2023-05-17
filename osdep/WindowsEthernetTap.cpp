@@ -749,6 +749,14 @@ std::vector<InetAddress> WindowsEthernetTap::ips() const
 	if (!_initialized)
 		return addrs;
 
+	uint64_t now = OSUtils::now();
+
+	if ((now - _lastIfAddrsUpdate) <= GETIFADDRS_CACHE_TIME) {
+		return _ifaddrs;
+	}
+
+	_lastIfAddrsUpdate = now;
+
 	try {
 		MIB_UNICASTIPADDRESS_TABLE *ipt = (MIB_UNICASTIPADDRESS_TABLE *)0;
 		if (GetUnicastIpAddressTable(AF_UNSPEC,&ipt) == NO_ERROR) {
@@ -776,6 +784,8 @@ std::vector<InetAddress> WindowsEthernetTap::ips() const
 
 	std::sort(addrs.begin(),addrs.end());
 	addrs.erase(std::unique(addrs.begin(),addrs.end()),addrs.end());
+
+	_ifaddrs = addrs;
 
 	return addrs;
 }
