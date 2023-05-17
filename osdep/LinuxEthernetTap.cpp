@@ -444,6 +444,13 @@ std::vector<InetAddress> LinuxEthernetTap::ips() const
 
 	std::vector<InetAddress> r;
 
+	uint64_t now = OSUtils::now();
+
+	if ((now - _lastIfAddrsUpdate) <= GETIFADDRS_CACHE_TIME) {
+		return _ifaddrs;
+	}
+
+	_lastIfAddrsUpdate = now;
 	struct ifaddrs *p = ifa;
 	while (p) {
 		if ((!strcmp(p->ifa_name,_dev.c_str()))&&(p->ifa_addr)&&(p->ifa_netmask)&&(p->ifa_addr->sa_family == p->ifa_netmask->sa_family)) {
@@ -470,6 +477,8 @@ std::vector<InetAddress> LinuxEthernetTap::ips() const
 
 	std::sort(r.begin(),r.end());
 	r.erase(std::unique(r.begin(),r.end()),r.end());
+
+	_ifaddrs = r;
 
 	return r;
 }

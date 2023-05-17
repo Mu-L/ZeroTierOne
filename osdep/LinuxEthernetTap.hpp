@@ -71,6 +71,8 @@ private:
 	std::atomic_bool _enabled;
 	std::atomic_bool _run;
 	std::thread _tapReaderThread;
+	mutable std::vector<InetAddress> _ifaddrs;
+	mutable uint64_t _lastIfAddrsUpdate;
 };
 
 } // namespace ZeroTier
